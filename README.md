@@ -20,7 +20,9 @@ korean_analysis/
 │   ├── tokenizer.ts      # Korean text tokenization
 │   ├── vocabulary.ts     # Vocabulary section extraction
 │   ├── fileWriter.ts     # File writing utilities
-│   └── server.ts         # Local web server
+│   ├── translator.ts     # ChatGPT API integration
+│   ├── server.ts         # Local web server
+│   └── startServer.ts    # Standalone server script
 ├── template/
 │   └── korean-practice-template.html  # Interactive practice sheet
 ├── output/               # Generated CSV files
@@ -28,6 +30,8 @@ korean_analysis/
 ```
 
 ## Usage
+
+### Full Analysis (PDF → CSV → Template)
 
 ```bash
 npm start <pdf-file-path>
@@ -43,6 +47,16 @@ The tool will:
 2. Generate CSV files in the `output/` directory
 3. Start a local web server
 4. Automatically open the practice template in your browser
+
+### View Template Only (Use Existing CSV)
+
+If you already have CSV files in the `output/` directory and just want to view the template:
+
+```bash
+npm run server
+```
+
+This will start the web server and open the template without generating new files.
 
 Press `Ctrl+C` to stop the server when done.
 
@@ -85,14 +99,60 @@ The template is served via a local web server at `http://localhost:8080` to avoi
 ### `src/server.ts`
 - `startServer()` - Starts local HTTP server for serving template and CSV files
 
+### `src/startServer.ts`
+- Standalone script to run the server without generating new files
+- Use with `npm run server` command
+
+### `src/translator.ts`
+- `Translator` class - Handles ChatGPT API integration for translations
+- `translateWords()` - Batch translates all words in a single API call (efficient)
+
 ## Requirements
 
 - Node.js v20+
 - TypeScript
 - PDF file path (provided as command line argument)
+- OpenAI API key (optional, for automatic translations)
 
 ## Installation
 
 ```bash
 npm install
 ```
+
+## Setup
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Add your OpenAI API key to `.env`:
+```
+OPENAI_API_KEY=your_api_key_here
+```
+
+You can get an API key from [OpenAI Platform](https://platform.openai.com/api-keys).
+
+**Note:** If you don't provide an API key, the tool will still work but will generate CSV files without English translations and descriptions. The practice template will show "missing english" and "missing description" for those fields.
+
+### Automatic Translation
+
+When an OpenAI API key is provided, the tool will automatically:
+- Translate Korean words to English (batch processing - all words in one API call)
+- Generate pronunciation guides (romanization)
+- Create example sentences in Korean with English translations
+
+The translation uses efficient batch processing - all words are sent in a single API request for faster execution and lower cost.
+
+Example output in CSV:
+```
+Word,English,Description,Frequency
+가방,bag,"ga-bang, 이 가방이 마음에 들어요. (I like this bag.)",5
+```
+
+## Security
+
+- `.env` file is excluded from git (see `.gitignore`)
+- Never commit your API keys
+- The `.env.example` file is safe to commit (contains no secrets)

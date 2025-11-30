@@ -1,9 +1,11 @@
+import 'dotenv/config';
 import fs from 'fs';
 import pdf from 'pdf-parse';
 import { tokenizeKorean, countWordFrequencies } from './src/tokenizer';
 import { extractVocabularySections } from './src/vocabulary';
 import { FileWriter } from './src/fileWriter';
 import { startServer } from './src/server';
+import { Translator } from './src/translator';
 import path from 'path';
 
 const OUTPUT_DIR = 'output';
@@ -69,8 +71,12 @@ async function main() {
             console.log(`${(index + 1).toString().padStart(2)}. ${word.padEnd(15)} (${count} times)`);
         });
         
-        // Save vocabulary words as CSV only
-        fileWriter.saveAsCSV(vocabularyFrequencies, 'korean_vocabulary.csv');
+        // Translate vocabulary words if API key is provided
+        const translator = new Translator(process.env.OPENAI_API_KEY);
+        const vocabularyWithTranslations = await translator.translateWords(vocabularyFrequencies);
+        
+        // Save vocabulary words as CSV with translations
+        fileWriter.saveAsCSV(vocabularyWithTranslations, 'korean_vocabulary.csv');
         
         // Also do full text analysis (original functionality)
         console.log('\nAnalyzing full text...');
