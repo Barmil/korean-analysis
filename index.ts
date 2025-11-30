@@ -3,8 +3,8 @@ import fs from 'fs';
 import pdf from 'pdf-parse';
 import { tokenizeKorean, countWordFrequencies } from './src/tokenizer';
 import { FileWriter } from './src/fileWriter';
-import { startServer } from './src/server';
 import { Translator } from './src/translator';
+import { exec } from 'child_process';
 import path from 'path';
 
 const OUTPUT_DIR = 'output';
@@ -100,18 +100,31 @@ async function main() {
         // Also save all words without translations
         fileWriter.saveAsCSV(vocabularyFrequencies, 'korean_words.csv');
         
+        // Generate HTML file with words embedded
+        console.log('\nGenerating HTML file...');
+        const templatePath = path.resolve('template/korean-practice-template.html');
+        const template = fs.readFileSync(templatePath, 'utf8');
+        
+        // Replace placeholder with vocabulary JSON
+        const vocabularyJson = JSON.stringify(wordsWithTranslations);
+        const htmlContent = template.replace('{{VOCABULARY_JSON}}', vocabularyJson);
+        
+        const htmlPath = path.join(OUTPUT_DIR, 'korean-practice.html');
+        fs.writeFileSync(htmlPath, htmlContent, 'utf8');
+        
         console.log('\nAnalysis complete.');
         console.log(`Words with translations: output/korean_vocabulary.csv`);
         console.log(`All words: output/korean_words.csv`);
+        console.log(`Practice HTML: ${htmlPath}`);
         
-        // Start local web server and open HTML template in browser
-        const templatePath = path.resolve('template/korean-practice-template.html');
-        if (fs.existsSync(templatePath)) {
-            console.log('\nStarting local web server...');
-            await startServer(templatePath);
-        } else {
-            console.log(`\nTemplate not found at: ${templatePath}`);
-        }
+        // Open HTML file in browser
+        const openCommand = process.platform === 'darwin' ? 'open' : 
+                           process.platform === 'win32' ? 'start' : 'xdg-open';
+        exec(`${openCommand} "${htmlPath}"`, (error) => {
+            if (error) {
+                console.log(`\nCould not open browser automatically. Please open: ${htmlPath}`);
+            }
+        });
         
     } catch (error) {
         console.error('Error parsing PDF:', error);

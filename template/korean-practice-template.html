@@ -33,45 +33,6 @@ Loading drill...
 </div>
 
 <script>
-// Parse CSV line
-function parseCSVLine(line) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    
-    for (let i = 0; i < line.length; i++) {
-        const char = line[i];
-        if (char === '"') {
-            inQuotes = !inQuotes;
-        } else if (char === ',' && !inQuotes) {
-            result.push(current.trim());
-            current = '';
-        } else {
-            current += char;
-        }
-    }
-    result.push(current.trim());
-    return result;
-}
-
-// Parse CSV content
-function parseCSV(csvText) {
-    const lines = csvText.trim().split('\n');
-    const header = parseCSVLine(lines[0]);
-    const data = [];
-    
-    for (let i = 1; i < lines.length; i++) {
-        const values = parseCSVLine(lines[i]);
-        const row = {};
-        header.forEach((key, index) => {
-            row[key] = values[index] || '';
-        });
-        data.push(row);
-    }
-    
-    return data;
-}
-
 // Shuffle array
 function shuffleArray(array) {
     const shuffled = [...array];
@@ -86,9 +47,9 @@ function shuffleArray(array) {
 function generatePracticeSection(words) {
     let html = '';
     words.forEach((word, index) => {
-        const korean = word.Word || word.word || 'missing korean';
-        const english = word.English || word.english || 'missing english';
-        const description = word.Description || word.description || 'missing description';
+        const korean = word.word || 'missing korean';
+        const english = word.english || 'missing english';
+        const description = word.description || 'missing description';
         
         html += `
 <div style="page-break-inside: avoid; break-inside: avoid; margin-bottom: 20pt;">
@@ -149,8 +110,8 @@ function generateDrillSection(words) {
         // Process all words, alternating direction every 10 words
         for (let i = 0; i < shuffledWords.length; i++) {
             const word = shuffledWords[i];
-            const korean = word.Word || word.word || 'missing korean';
-            const english = word.English || word.english || 'missing english';
+            const korean = word.word || 'missing korean';
+            const english = word.english || 'missing english';
             
             // Alternate every 10 words: first 10 are English→Korean, next 10 are Korean→English, etc.
             const groupIndex = Math.floor(i / 10);
@@ -242,19 +203,12 @@ function setTargetDate() {
     document.getElementById('target-date').textContent = dateStr;
 }
 
-// Load and process CSV
-async function loadVocabulary() {
+// Load vocabulary from embedded JSON
+function loadVocabulary() {
     try {
-        // Try to load from server (works when served via http)
-        const csvPath = '/output/korean_vocabulary.csv';
-        const response = await fetch(csvPath);
-        
-        if (!response.ok) {
-            throw new Error(`Failed to load CSV: ${response.statusText}`);
-        }
-        
-        const csvText = await response.text();
-        const words = parseCSV(csvText);
+        // Get vocabulary from placeholder
+        const stringifiedWords = `{{VOCABULARY_JSON}}`;
+        const words = JSON.parse(stringifiedWords);
         
         // Set date
         setTargetDate();
@@ -269,20 +223,19 @@ async function loadVocabulary() {
         
     } catch (error) {
         console.error('Error loading vocabulary:', error);
-        document.getElementById('practice-section').innerHTML = '<p class="c7">Error loading vocabulary CSV. Make sure the file is in the output folder.</p>';
-        document.getElementById('drill-section').innerHTML = '<p class="c7">Error loading vocabulary CSV.</p>';
+        document.getElementById('practice-section').innerHTML = '<p class="c7">Error loading vocabulary.</p>';
+        document.getElementById('drill-section').innerHTML = '<p class="c7">Error loading vocabulary.</p>';
     }
 }
 
 // Load vocabulary when page loads
 window.addEventListener('DOMContentLoaded', () => {
-    loadVocabulary().then(() => {
-        // Auto-trigger print dialog after content is loaded
-        // Small delay to ensure content is fully rendered
-        setTimeout(() => {
-            window.print();
-        }, 500);
-    });
+    loadVocabulary();
+    // Auto-trigger print dialog after content is loaded
+    // Small delay to ensure content is fully rendered
+    setTimeout(() => {
+        window.print();
+    }, 500);
 });
 </script>
 </body>
