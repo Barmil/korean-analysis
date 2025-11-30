@@ -3,6 +3,8 @@ import pdf from 'pdf-parse';
 import { tokenizeKorean, countWordFrequencies } from './src/tokenizer';
 import { extractVocabularySections } from './src/vocabulary';
 import { FileWriter } from './src/fileWriter';
+import { startServer } from './src/server';
+import path from 'path';
 
 const OUTPUT_DIR = 'output';
 const fileWriter = new FileWriter(OUTPUT_DIR);
@@ -84,6 +86,15 @@ async function main() {
         console.log('\nAnalysis complete.');
         console.log(`Vocabulary CSV: output/korean_vocabulary.csv`);
         console.log(`All words CSV: output/korean_words.csv`);
+        
+        // Start local web server and open HTML template in browser
+        const templatePath = path.resolve('template/korean-practice-template.html');
+        if (fs.existsSync(templatePath)) {
+            console.log('\nStarting local web server...');
+            await startServer(templatePath);
+        } else {
+            console.log(`\nTemplate not found at: ${templatePath}`);
+        }
         
     } catch (error) {
         console.error('Error parsing PDF:', error);
