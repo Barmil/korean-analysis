@@ -8,7 +8,7 @@ ol{margin:0;padding:0}table td,table th{padding:0}.c8{border-right-style:solid;p
 <body class="c16 doc-content">
 <p class="c10 title" id="h.qexw0zqvhvnl">
 <span class="c18" id="title-date">
-Korean Words Practice for <span id="target-date"><placeholder></span>
+Korean Words Practice for <span id="target-date">Loading...</span>
 </span>
 </p>
 <p class="c17 subtitle" id="h.p3yinhw4luh1">
@@ -85,9 +85,9 @@ function shuffleArray(array) {
 function generatePracticeSection(words) {
     let html = '';
     words.forEach((word, index) => {
-        const korean = word.Word || word.word || '<placeholder>';
-        const english = word.English || word.english || '<placeholder>';
-        const description = word.Description || word.description || '<placeholder>';
+        const korean = word.Word || word.word || 'missing korean';
+        const english = word.English || word.english || 'missing english';
+        const description = word.Description || word.description || 'missing description';
         
         html += `
 <p class="c7">
@@ -143,8 +143,8 @@ function generateDrillSection(words) {
     
     let html = '<table class="c14">\n';
     shuffled.forEach((word, index) => {
-        const korean = word.Word || word.word || '<placeholder>';
-        const english = word.English || word.english || '<placeholder>';
+        const korean = word.Word || word.word || 'missing korean';
+        const english = word.English || word.english || 'missing english';
         const foldMarker = index % 10 === 0 ? 'FOLD HERE' : '';
         
         html += `<tr class="c19">
