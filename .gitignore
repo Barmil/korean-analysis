@@ -4,6 +4,9 @@
 # Output files
 output/
 
+# Cache files
+.cache/
+
 # Dependencies
 node_modules/
 

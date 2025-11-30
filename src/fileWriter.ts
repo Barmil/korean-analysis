@@ -32,7 +32,7 @@ export class FileWriter {
         console.log(`Saved ${words.length} unique words to ${filePath}`);
     }
     
-    saveAsCSV(words: WordFrequency[] | Array<WordFrequency & { english?: string; description?: string }>, filename: string, subfolder?: string): void {
+    saveAsCSV(words: WordFrequency[] | Array<WordFrequency & { english?: string; description?: string; fixedWord?: string }>, filename: string, subfolder?: string): void {
         const filePath = this.getFullPath(filename, subfolder);
         
         // Check if words have translation data
@@ -45,7 +45,9 @@ export class FileWriter {
             header = 'Word,English,Description,Frequency\n';
             content = words
                 .map((word: any) => {
-                    const escapedWord = `"${word.word.replace(/"/g, '""')}"`;
+                    // Use fixed word if available, otherwise use original
+                    const displayWord = word.fixedWord || word.word;
+                    const escapedWord = `"${displayWord.replace(/"/g, '""')}"`;
                     const escapedEnglish = `"${(word.english || '').replace(/"/g, '""')}"`;
                     const escapedDescription = `"${(word.description || '').replace(/"/g, '""')}"`;
                     return `${escapedWord},${escapedEnglish},${escapedDescription},${word.count}`;
@@ -54,7 +56,11 @@ export class FileWriter {
         } else {
             header = 'Word,Frequency\n';
             content = words
-                .map(({ word, count }) => `"${word.replace(/"/g, '""')}",${count}`)
+                .map((word: any) => {
+                    // Use fixed word if available, otherwise use original
+                    const displayWord = word.fixedWord || word.word;
+                    return `"${displayWord.replace(/"/g, '""')}",${word.count}`;
+                })
                 .join('\n');
         }
         

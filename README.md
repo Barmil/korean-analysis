@@ -105,7 +105,15 @@ The template is served via a local web server at `http://localhost:8080` to avoi
 
 ### `src/translator.ts`
 - `Translator` class - Handles ChatGPT API integration for translations
-- `translateWords()` - Batch translates all words in a single API call (efficient)
+- `translateWords()` - Fixes, splits, and translates words in a single API call
+- Automatically fixes concatenated/misspelled words and splits combined words
+- Uses cache to avoid re-translating words
+
+### `src/cache.ts`
+- `CacheInterface` - Interface for cache implementations
+- `FileBasedCache` - Default file-based cache implementation
+- `getCache()` / `setCache()` - Get or swap cache implementation
+- Caches translations and PDF text for faster subsequent runs
 
 ## Requirements
 
@@ -139,11 +147,12 @@ You can get an API key from [OpenAI Platform](https://platform.openai.com/api-ke
 ### Automatic Translation
 
 When an OpenAI API key is provided, the tool will automatically:
+- Fix and split concatenated/misspelled Korean words (e.g., "분위기 기분이" → ["분위기", "기분"])
 - Translate Korean words to English (batch processing - all words in one API call)
 - Generate pronunciation guides (romanization)
 - Create example sentences in Korean with English translations
 
-The translation uses efficient batch processing - all words are sent in a single API request for faster execution and lower cost.
+The translation uses efficient batch processing - word fixing, splitting, and translation all happen in a single API request for faster execution and lower cost. Fixed/split words are automatically added to the vocabulary list.
 
 Example output in CSV:
 ```
@@ -151,8 +160,22 @@ Word,English,Description,Frequency
 가방,bag,"ga-bang, 이 가방이 마음에 들어요. (I like this bag.)",5
 ```
 
+## Caching
+
+The tool uses a file-based cache to improve performance:
+
+- **Translation Cache**: Stores translations in `.cache/translations.json`
+  - Avoids re-translating the same words across different PDFs
+  - Saves API costs and speeds up processing
+  - Automatically checks cache before making API calls
+
+The cache is automatically created and managed. To clear the cache, delete the `.cache/` directory.
+
+The cache implementation is modular - you can swap it with a different implementation (e.g., Redis, database) by implementing the `CacheInterface` in `src/cache.ts`.
+
 ## Security
 
 - `.env` file is excluded from git (see `.gitignore`)
 - Never commit your API keys
 - The `.env.example` file is safe to commit (contains no secrets)
+- Cache directory is excluded from git
