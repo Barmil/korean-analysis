@@ -13,9 +13,7 @@
     "dotenv": "^17.2.3",
     "openai": "^6.9.1",
     "pdf-parse": "^1.1.1",
-    "ts-node": "^10.9.2",
-    "wink-eng-lite-web-model": "^1.8.1",
-    "wink-nlp": "^2.4.0"
+    "ts-node": "^10.9.2"
   },
   "devDependencies": {
     "@types/pdf-parse": "^1.1.5"
