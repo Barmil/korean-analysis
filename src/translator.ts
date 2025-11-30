@@ -75,34 +75,53 @@ export class Translator {
             return new Map();
         }
 
-        console.log(`\nFixing and translating ${words.length} Korean words (single batch request)...`);
+        const BATCH_SIZE = 100; // Process in batches to avoid timeouts
+        const translationMap = new Map<string, TranslationCache>();
         
-        try {
-            const koreanWords = words.map(w => w.word).join(', ');
-            const prompt = FIX_AND_TRANSLATE_PROMPT_TEMPLATE.replace('{WORDS}', koreanWords);
+        // Process words in batches
+        for (let i = 0; i < words.length; i += BATCH_SIZE) {
+            const batch = words.slice(i, i + BATCH_SIZE);
+            const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+            const totalBatches = Math.ceil(words.length / BATCH_SIZE);
+            
+            console.log(`\nFixing and translating batch ${batchNum}/${totalBatches} (${batch.length} words)...`);
+            
+            try {
+                const koreanWords = batch.map(w => w.word).join(', ');
+                const prompt = FIX_AND_TRANSLATE_PROMPT_TEMPLATE.replace('{WORDS}', koreanWords);
 
-            const response = await this.client.chat.completions.create({
-                model: 'gpt-4o-mini',
-                messages: [
-                    {
-                        role: 'system',
-                        content: FIX_AND_TRANSLATE_SYSTEM_MESSAGE
-                    },
-                    {
-                        role: 'user',
-                        content: prompt
-                    }
-                ],
-                temperature: 0.7,
-                response_format: { type: 'json_object' }
-            });
+                const response = await this.client.chat.completions.create({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: FIX_AND_TRANSLATE_SYSTEM_MESSAGE
+                        },
+                        {
+                            role: 'user',
+                            content: prompt
+                        }
+                    ],
+                    temperature: 0.7,
+                    response_format: { type: 'json_object' }
+                });
 
-            const content = response.choices[0]?.message?.content || '';
-            return this.parseTranslationsResponse(content);
-        } catch (error) {
-            console.error('Error fixing and translating words:', error);
-            return new Map();
+                const content = response.choices[0]?.message?.content || '';
+                const batchResults = this.parseTranslationsResponse(content);
+                
+                // Merge batch results into main map
+                batchResults.forEach((translation, word) => {
+                    translationMap.set(word, translation);
+                });
+                
+                console.log(`Batch ${batchNum} complete.`);
+            } catch (error) {
+                console.error(`Error fixing and translating batch ${batchNum}:`, error);
+                // Continue with next batch even if this one fails
+            }
         }
+        
+        return translationMap;
     }
 
     /**
@@ -125,11 +144,7 @@ export class Translator {
                 translations = parsed.words;
             }
             
-            const fixedCount = translations.filter(t => t.original).length;
-            if (fixedCount > 0) {
-                console.log(`Fixed/split ${fixedCount} words and added them to translations.`);
-            }
-            
+            // First pass: cache all fixed/split words
             translations.forEach((t: any) => {
                 if (t.korean) {
                     const pronunciation = t.pronunciation || '';
@@ -141,9 +156,60 @@ export class Translator {
                         cachedAt: new Date().toISOString()
                     };
                     
-                    // Use the fixed/split word as the key
+                    // Cache the fixed/split word
                     translationMap.set(t.korean, translation);
                     cache.saveTranslation(t.korean, translation);
+                }
+            });
+            
+            // Second pass: cache original words (grouped by original to handle splits)
+            const originalWordMap = new Map<string, any[]>();
+            translations.forEach((t: any) => {
+                if (t.original && t.original !== t.korean) {
+                    const original = t.original;
+                    if (!originalWordMap.has(original)) {
+                        originalWordMap.set(original, []);
+                    }
+                    originalWordMap.get(original)!.push(t);
+                }
+            });
+            
+            const fixedCount = originalWordMap.size;
+            if (fixedCount > 0) {
+                console.log(`Fixed/split ${fixedCount} words and added them to translations.`);
+            }
+            
+            // Cache original words with combined translations for split words
+            originalWordMap.forEach((splitWords, original) => {
+                if (splitWords.length > 1) {
+                    // Multiple words: combine translations
+                    const combinedDescription = splitWords
+                        .map((sw: any) => {
+                            const p = sw.pronunciation || '';
+                            const e = sw.example || '';
+                            return [p, e].filter(Boolean).join(', ');
+                        })
+                        .filter(Boolean)
+                        .join('; ') || 'missing description';
+                    
+                    const combinedTranslation: TranslationCache = {
+                        english: splitWords.map((sw: any) => sw.english).filter(Boolean).join(' / ') || 'missing english',
+                        description: combinedDescription,
+                        cachedAt: new Date().toISOString()
+                    };
+                    cache.saveTranslation(original, combinedTranslation);
+                } else if (splitWords.length === 1) {
+                    // Single fixed word: use its translation
+                    const sw = splitWords[0];
+                    const pronunciation = sw.pronunciation || '';
+                    const example = sw.example || '';
+                    const description = [pronunciation, example].filter(Boolean).join(', ') || 'missing description';
+                    const translation: TranslationCache = {
+                        english: sw.english || 'missing english',
+                        description: description,
+                        cachedAt: new Date().toISOString()
+                    };
+                    cache.saveTranslation(original, translation);
                 }
             });
         } catch (parseError) {
