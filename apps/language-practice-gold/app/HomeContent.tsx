@@ -137,9 +137,8 @@ export function HomeContent({ user, handleSignOut }: HomeContentProps) {
           <Text c="dimmed" size="lg">
             Welcome, {user?.name || 'User'}!
           </Text>
-          <Text c="dimmed" size="sm" style={{ maxWidth: '600px' }}>
-            This is a powerful tool for extracting and analyzing Korean vocabulary from textbooks, 
-            with specialized features for vocabulary extraction and generating interactive practice sheets.
+          <Text c="dimmed" size="sm">
+            This is a tool that analyzes Korean vocabulary from textbooks, csv or free text, and generates interactive practice sheets.
           </Text>
         </Stack>
 
