@@ -4,6 +4,10 @@
   "scripts": {
     "start": "cd packages/korean-analysis && ts-node .",
     "server": "cd packages/korean-analysis && ts-node src/startServer.ts",
+    "app": "cd apps/language-practice-gold && npm run dev",
+    "app:dev": "cd apps/language-practice-gold && npm run dev",
+    "app:build": "cd apps/language-practice-gold && npm run build",
+    "app:start": "cd apps/language-practice-gold && npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
