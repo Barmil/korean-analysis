@@ -14,7 +14,8 @@
   "ts-node": {
     "esm": false
   },
-  "include": ["packages/**/*.ts"],
-  "exclude": ["node_modules", "output", "packages/**/node_modules"]
+  "include": ["*.ts", "src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
+
 

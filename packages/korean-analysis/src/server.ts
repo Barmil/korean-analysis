@@ -15,11 +15,11 @@ export async function startServer(templatePath: string, port: number = 8080): Pr
                 filePath = templatePath;
                 res.setHeader('Content-Type', 'text/html; charset=utf-8');
             } else if (req.url === '/output/korean_vocabulary.csv' || req.url === '/korean_vocabulary.csv') {
-                filePath = path.resolve('output/korean_vocabulary.csv');
+                filePath = path.resolve(__dirname, '../../output/korean_vocabulary.csv');
                 res.setHeader('Content-Type', 'text/csv; charset=utf-8');
                 res.setHeader('Access-Control-Allow-Origin', '*');
             } else if (req.url === '/output/korean_words.csv' || req.url === '/korean_words.csv') {
-                filePath = path.resolve('output/korean_words.csv');
+                filePath = path.resolve(__dirname, '../../output/korean_words.csv');
                 res.setHeader('Content-Type', 'text/csv; charset=utf-8');
                 res.setHeader('Access-Control-Allow-Origin', '*');
             } else {

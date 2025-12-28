@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import fs from 'fs';
+import path from 'path';
 import { promisify } from 'util';
 import { exec } from 'child_process';
 import { analyzeFile, translateWords, displayTopWords } from './src/analyzer';
@@ -7,7 +8,7 @@ import { generatePracticeFile, saveVocabularyFiles } from './src/practiceGenerat
 
 const execAsync = promisify(exec);
 
-const OUTPUT_DIR = 'output';
+const OUTPUT_DIR = path.resolve(__dirname, '../../output');
 
 // Clean up old output directories on start
 try {

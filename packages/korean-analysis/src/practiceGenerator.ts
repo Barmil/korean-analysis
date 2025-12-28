@@ -3,7 +3,7 @@ import path from 'path';
 import { FileWriter } from './fileWriter';
 import { WordWithTranslation } from './analyzer';
 
-const OUTPUT_DIR = 'output';
+const OUTPUT_DIR = path.resolve(__dirname, '../../output');
 const fileWriter = new FileWriter(OUTPUT_DIR);
 
 /**
@@ -13,7 +13,7 @@ export function generatePracticeFile(words: WordWithTranslation[]): string {
     console.log('\nGenerating HTML file...');
     
     // Read template
-    const templatePath = path.resolve('template/korean-practice-template.html');
+    const templatePath = path.resolve(__dirname, '../template/korean-practice-template.html');
     const template = fs.readFileSync(templatePath, 'utf8');
     
     // Replace placeholder with vocabulary JSON
@@ -40,7 +40,7 @@ export function saveVocabularyFiles(
     // Also save all words without translations
     fileWriter.saveAsCSV(allWords, 'korean_words.csv');
     
-    console.log(`Words with translations: output/korean_vocabulary.csv`);
-    console.log(`All words: output/korean_words.csv`);
+    console.log(`Words with translations: ${path.resolve(OUTPUT_DIR, 'korean_vocabulary.csv')}`);
+    console.log(`All words: ${path.resolve(OUTPUT_DIR, 'korean_words.csv')}`);
 }
 
