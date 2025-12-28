@@ -1,5 +1,4 @@
-import { auth } from "@/app/api/auth/[...nextauth]/route"
-import { signOut } from "@/app/api/auth/[...nextauth]/route"
+import { auth, signOut } from "@/auth"
 import { redirect } from "next/navigation"
 import { HomeContent } from "./HomeContent"
 

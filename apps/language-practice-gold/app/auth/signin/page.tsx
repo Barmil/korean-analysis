@@ -1,4 +1,4 @@
-import { signIn } from "@/app/api/auth/[...nextauth]/route"
+import { signIn } from "@/auth"
 import { redirect } from "next/navigation"
 import { SignInForm } from "./SignInForm"
 
